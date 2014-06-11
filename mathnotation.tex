@@ -1,0 +1,90 @@
+
+% Mathematical LaTeX formatting shortcuts
+\newcommand{\midwor}[1]{\;\textnormal{ #1 }\;} % text in math mode
+\newcommand{\ds}{\displaystyle} % shorcut to toggle display
+	% All formula should punctuation as they are part of the text.
+\newcommand{\vf}{\,,\,} % a comma with space
+\newcommand{\ff}{\,.} % a dot 
+	% The following command allows to write quickly sets { }   
+\newcommand{\lset}{\left\{\left.\;}
+\newcommand{\midset}{\;\right|\;\left.}
+\newcommand{\dimset}{\right.\;\left|\;}
+\newcommand{\rset}{\;\right.\right\}}
+\newcommand{\jset}{\right.\right.\\ & \left.\left.}
+
+% Number sets and usual operations
+\newcommand{\Real}{\mathbb{R}} % real numbers
+\newcommand{\RelInt}{\mathbb{Z}} % relative integer numbers
+\newcommand{\NatInt}{\mathbb{N}} % natural integer numbers
+\newcommand{\Compl}{\mathbb{C}} % complex numbers
+\newcommand{\valent}[1]{\left\lfloor #1 \right\rfloor} % integer value
+\newcommand{\valentsup}[1]{\left\lceil #1 \right\rceil} % integer value + 1
+\newcommand{\eps}{\varepsilon} % very small real number
+\newcommand{\argmin}{\textrm{argmin}} %argument of the minimum
+\newcommand{\pospar}[1]{\left( #1 \right)^+} % positive part
+
+% Probability notation
+\newcommand{\proba}{\mathbb{P}} % Probability
+\newcommand{\probaof}[1]{\mathbb{P}\left.\left[#1\right.\right]} % Probability of an event
+\newcommand{\cond}{\right|\left.} % Condition on an event 
+\newcommand{\expec}[1]{\mathbb{E}\left[#1\right]} % Expectation 
+\newcommand{\vari}[1]{\textrm{V}\left[#1\right]} % Variance 
+\newcommand{\Lun}{\mathbb{L}^{1}} % Space of integrable function
+\newcommand{\as}{\;\textrm{a.s.}\;}
+\newcommand{\ind}[1]{\mathbb{I}_{\{#1\}}} % Indicator
+\newcommand{\tribF}{\mathcal{F}} % sigma-algebra
+
+% Constants
+\newcommand{\cst}{\textrm{\texttt{cst}}}
+
+% Advanced probability 
+\newcommand{\comp}{\circ} % composition of function
+\newcommand{\shi}{\theta} % ergodic shift
+\newcommand{\lstoc}{\displaystyle \leq_{\textrm{st}}} % Stochastic Order
+\newcommand{\Ppalmof}[1]{\mathbb{P}^{0}_{#1}}
+\newcommand{\Pofpalmof}[2]{\mathbb{P}^{0}_{#1}\left[#2\right]}
+\newcommand{\expPalm}[1]{\mathbb{E}^{0}[#1]} % Palm Expectation
+\newcommand{\expPalmof}[2]{\mathbb{E}^{0}_{#1}[#2]} % Palm Expectation w.r.t. point process f 
+
+% (max,+) algebra
+\newcommand{\Rmax}{\mathbb{R}_{\max}}
+\newcommand{\ninf}{\varepsilon}
+\newcommand{\matninf}{\textrm{\Large{$\ninf$}}}
+\newcommand{\zer}{e}
+\newcommand{\veczer}{\textrm{\Large{e}}}
+\newcommand{\bigmax}{\bigvee}
+\newcommand{\matId}{{\mathbb{I}}}
+%\newcommand{\norm}[1]{\| #1 \|}
+\newcommand{\linf}[1]{\left|\left| #1 \right|\right|}
+
+% Matrices
+\newcommand{\matA}{\mathbb{A}}
+\newcommand{\matB}{\mathbb{B}}
+\newcommand{\matC}{\mathbb{C}}
+\newcommand{\matP}{\mathbb{P}}
+\newcommand{\matQ}{\mathbb{Q}}
+
+% Used for set
+\newcommand{\setI}{\mathcal{I}}
+\newcommand{\setJ}{\mathcal{J}}
+\newcommand{\setK}{\mathcal{K}}
+\newcommand{\setL}{\mathcal{L}}
+
+% Users and Buckets
+\newcommand{\setU}{\mathcal{U}}
+\newcommand{\setC}{\mathcal{C}}
+
+\newcommand{\setA}{\mathcal{A}}
+\newcommand{\setW}{\mathcal{W}}
+
+% Used for set
+\newcommand{\setN}{\mathcal{N}}
+\newcommand{\setS}{\mathcal{S}}
+
+
+\newenvironment{disarray}%
+ {\everymath{\displaystyle\everymath{}}\array}%
+ {\endarray}
+
+ \newcommand{\pdi}[1]{\frac{\partial #1}{\partial x_i}}
+ \newcommand{\pdj}[1]{\frac{\partial #1}{\partial x_j}}

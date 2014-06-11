@@ -1,0 +1,275 @@
+% This version uses the latex2e styles, not the very ancient 2.09 stuff.
+\documentclass{sig-alternate-10pt}
+\usepackage{endnotes,url}
+%\usepackage{sig-alternate-10pt,endnotes}
+\usepackage{epsfig}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{verbatim}
+% Replaced by subfig package
+% \usepackage{subfigure}
+\usepackage{subfig}
+\usepackage{epstopdf}
+\usepackage{cite}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{listings}
+
+
+%\pdfpagewidth 8.5in
+%\pdfpageheight 11in
+%\baselineskip=12.5pt
+%\setlength{\pdfpagewidth}{8.5in}
+%\setlength{\pdfpageheight}{11in}
+%\usepackage{pdfdraftcopy}
+
+% To import classical math notation used
+\input{mathnotation.tex}
+% Package for date and time presentation
+\usepackage{datetime}
+\newcommand{\datation}{\today, \xxivtime}
+
+\def\full{0}        % set 1 for a full tech report version
+                    % set 0 for submission version
+\def\shownotes{1}   % set 1 for version with author notes
+                    % set 0 for no notes
+\def\anon{0}        % set 1 to anonymize
+                    % set 0 for acks and author names
+
+%%%%%%%  Author Notes %%%%%%%
+%
+\ifnum\shownotes=1
+\newcommand{\authnote}[2]{{ $\ll$\textsf{\footnotesize #1 notes: #2}$\gg$}}
+\else
+\newcommand{\authnote}[2]{}
+\fi
+\newcommand{\Ynote}[1]{{\authnote{Yan}{#1}}}
+\newcommand{\Anote}[1]{{\authnote{Andrius}{#1}}}
+\newcommand{\Nnote}[1]{{\authnote{Narseo}{#1}}}
+\newcommand{\Vnote}[1]{{\authnote{Vijay}{#1}}}
+\newcommand{\Dnote}[1]{{\authnote{Dina}{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\namedref}[2]{#1~\ref{#2}}
+\newcommand{\tableref}[1]{\namedref{Table}{#1}}
+\newcommand{\sectionref}[1]{\namedref{Section}{#1}}
+\newcommand{\appendixref}[1]{\namedref{Appendix}{#1}}
+\newcommand{\theoremref}[1]{\namedref{Theorem}{#1}}
+\newcommand{\remarkref}[1]{\namedref{Remark}{#1}}
+\newcommand{\definitionref}[1]{\namedref{Definition}{#1}}
+\newcommand{\figureref}[1]{\namedref{Figure}{#1}}
+\newcommand{\lemmaref}[1]{\namedref{Lemma}{#1}}
+\newcommand{\claimref}[1]{\namedref{Claim}{#1}}
+\newcommand{\propositionref}[1]{\namedref{Proposition}{#1}}
+\newcommand{\constructionref}[1]{\namedref{Construction}{#1}}
+\newcommand{\corollaryref}[1]{\namedref{Corollary}{#1}}
+\newcommand{\equationref}[1]{\namedref{Equation}{#1}}
+%
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{obs}[theorem]{Observation}
+%
+
+
+\providecommand{\vs}{vs. }
+\providecommand{\ie}{\emph{i.e.,} }
+\providecommand{\eg}{\emph{e.g.,} }
+\providecommand{\cf}{\emph{cf.,} }
+\providecommand{\resp}{\emph{resp.,} }
+\providecommand{\etal}{\emph{et al.}}   %Removed trailing space here; usually want non-breaking space with following reference
+\providecommand{\etc}{\emph{etc.}}      % No trailing space here either
+\providecommand{\mypara}[1]{\smallskip\noindent\emph{#1} }
+\providecommand{\myparab}[1]{\smallskip\noindent\textbf{#1} }
+\providecommand{\myparasc}[1]{\smallskip\noindent\textsc{#1} }
+\providecommand{\para}{\smallskip\noindent}
+
+\newtheorem{axiom}{{\bf  Axiom}}
+\newtheorem{defin}{{\bf  Definition}}
+\newtheorem{proposition}{Proposition}
+
+\usepackage{enumitem}
+\setlist{nolistsep}
+
+%Model parameters
+
+\usepackage[breaklinks=true]{hyperref}
+\frenchspacing
+\begin{document}
+
+%don't want date printed
+\date{}
+
+
+%make title bold and 14 pt font (Latex default is non-bold, 16 pt)
+\title{PhoneLets: offloading the phone off your phone for energy, cost and network load optimisation}
+\ifnum\anon=1
+\author{[Paper: \#XXX]}% \hspace{0.2cm} \ampmtime ]}
+\else
+\numberofauthors{2}
+\author{
+% \alignauthor Andrius Aucinas\\
+% \affaddr{University of Cambridge} 
+% \and
+% \alignauthor Jon Crowcroft\\
+% \affaddr{University of Cambridge}
+}
+\fi
+%for single author (just remove % characters)
+
+    
+% end author
+\maketitle
+% Use the following at camera-ready time to suppress page numbers.
+% Comment it out when you first submit the paper for review.
+%\thispagestyle{empty}
+\begin{abstract}
+This demo presents \emph{PhoneLets}, a system to provide offloading of phone functionality of mobile cellular devices to a neighboring, potentially powered one. Phone offloading happens through providing access to cellular network subscriber credentials over a short-range wireless link and selecting the device that uses them to register to a particular network. As a result, we can use a single identity (SIM card) across multiple clients without increasing their connectivity costs, the load for the network handling large numbers of other subscribers and we are able to optimize mobile clients' energy consumption by leveraging powered \emph{PhoneLets} or using them to share the energy consumption load across distributed nodes.
+\end{abstract} 
+
+\section{What PhoneLets are}
+\label{section:intro}
+
+Not only the modern smartphone has more in common with a computer than a phone, but connectivity to the Internet as well as the increasing number of surrounding devices (the \emph{Internet of Things}) is tipping the balance even further. Cellular networks, however, are just as important as they provide almost ubiquitous Internet connectivity around the world. There are multiple problems with cellular connectivity.
+
+Firstly, it is relatively expensive for the users~\cite{Anonymous:2013ut} and typically the end user needs to obtain a separate subscription for each of his devices connected to the cellular network, e.g. smartphone and tabled as well as broadband connectivity at home and at work, each with its underutilized caps and subscription fees.
+
+Secondly, the price is largely driven by the high infrastructure costs which increase with the growing number of network users - the increasing number of connected clients periodically communicating data also increase cellular networks loads, in the extreme cases causing \emph{signaling storms}~\cite{Yang:wh} that can bring the entire network down.
+
+Finally, energy consumption of always connected clients is high compared to short-range radio technologies. We have analyzed in the past how power-hungry such communication can be from the mobile device perspective~\cite{Aucinas:2013uk} and without careful optimization of such communication patterns the cost may be too high for many types of devices.
+
+These factors all motivate the need for \emph{PhoneLets}, a wireless system that enables offloading of cellular connectivity off a device to share a subscription between devices, balance energy consumption of a group of devices or simply replace the cellular link with a short-range link to a powered device.
+
+\emph{PhoneLets} enable the functionality by exploiting remote SIM functionality of certain hardware, whereby a cellular module accepts to exchange commands with a SIM/UICC module over a separate communication link rather than direct, physical connection. Building our prototype on the existing technology allows us to achieve more advanced functionality without breaking encryption of participating entities or doing unlawful communication interception. Instead, \emph{PhoneLets} infrastructure establishes and manages secure communication channels between participating entities and allows a device to connect to a cellular network without a physical SIM module being present.
+
+
+\section{Strawman Design}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.95\columnwidth]{figs/arch}
+\caption{Architecture}
+\label{fig:arch}
+\end{figure}
+
+The overall concept and system architecture is shown in Fig.~\ref{fig:arch}. There are three types of entities: mobile server - a mobile device which can share its SIM with other clients, SIM server which may host and provide more sets of credentials over local or wide-area networks and a mobile client which can use either of the methods.
+
+Atypically for cellular networking technologies, certain parts are relatively loosely coupled as the baseband does not require physical presence of a SIM  or relays communication to its SIM. Furthermore the SIM is a smartcard which can be interfaced with a standard smartcard reader, allowing for a relatively simple server design. Our work for this demo focused primarily on the client and SIM server design, and we are using off-the-shelf hardware as the mobile server to show compatibility with the specification.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.95\columnwidth]{figs/client}
+\caption{Client prototype}
+\label{fig:client}
+\end{figure}
+
+Our demo mobile client (Fig.~\ref{fig:client}) consists of a Telit UC864 cellular module connected to a raspberryPI as a controller, which also uses WiFi and BlueTooth dongles for local wireless connectivity. The controller runs a modified version of the Ofono open telephony stack\footnote{\url{https://ofono.org/}} and manages communication between the cellular module and multiple backends.
+
+In addition to an unmodified Galaxy S4 running as the mobile client, we have also implemented a server that does not require a cellular module and instead interfaces with SIM cards through a smartcard reader. Once a connection is established to either backend (over BlueTooth to the mobile server or an encrypted connection to the SIM server), the cellular module communicates with the remote card using the standard Application Protocol Data Unit (APDU) messages (Fig.~\ref{fig:sequence}) and registers with the network. Importantly, in this case we replace the BlueTooth communication channel with an arguably more secure option in that we use certificate-based authentication of both client and server and use strong SSL/TLS encryption for all data exchange.
+
+An important point to make is that we do not clone the SIM card and by design the system disables connectivity for one device before enabling it for another one to prevent multiple devices sharing the same credentials simultaneously as this would very likely be unsupported by the network even if it were not considered to be an attempt to illegally clone a card. Therefore, one device is connected to the cellular network and may share (\emph{tether}) the connectivity to other devices over another channel. One cellular module is also only capable of being registered with one network, therefore enforcing a strict one-to-one mapping.
+
+One part of the network's security is that the network authenticates the subscriber for any major operation (e.g. placing or receiving phonecalls, establishing PDP context) as well as periodically checks for subscriber's presence, therefore the link between the client and the corresponding server must be always maintained, simplifying security requirements of the communication channel. 
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.95\columnwidth]{figs/sequence}
+\caption{Communication sequence between client, server and remote SIM card}
+\label{fig:sequence}
+\end{figure}
+
+\section{Potential for energy efficiency}
+
+A major motivation for using \emph{PhoneLets} is reduced mobile client energy consumption. In this section we provide energy consumption of a few example scenarios using our early prototype. Since the client itself is not yet energy-optimized, i.e. does not use the full energy saving capabilities of the radio module and the controlling RaspberryPI is not meant for mobile uses, we focused on energy comparison of the mobile SIM server.
+
+\begin{table}[t]
+{
+\small
+\begin{tabular}{| l | c |}
+\hline
+  \textbf{Use case}         & \textbf{Avg. energy consumption (mA)}  \\ \hline
+  Idle - airplane mode      & 5  \\ \hline
+  Only BlueTooth on         & 6  \\ \hline
+  Idle - only WiFi          & 8  \\ \hline
+  Idle - 3G on              & 10 \\ \hline
+  Apps background           & 22.4 - 54.5  \\ \hline
+  WiFi Apps background      & ??    \\ \hline
+  WiFi frequent messages    & YY    \\ \hline
+  BT SIM access             & 28  \\ \hline
+  WiFi tethering (idle)     & 80  \\ \hline
+\end{tabular}
+}
+\caption{Energy consumption of the different usage scenarios of a mobile device.}
+\label{tab:energy}
+\end{table}
+
+We measured energy consumption of a Samsung Galaxy S4 phone using the Power Monitor\footnote{Monsoon Power Monitor \url{http://www.msoon.com/LabEquipment/PowerMonitor/}}. The different values are presented in Table.~\ref{tab:energy}. Energy consumption of an idle device with applications in background (\emph{Apps background} considers a device with Google Apps, Skype, Facebook and Viber apps installed and running in background and is from our previous work~\cite{Aucinas:2013uk}.
+
+With the default implementation of Remote SIM Access over BlueTooth, the device consumes three times the amount of energy of an idle device connected to a 3G network, which is a high energy cost to pay, however the amount is similar or even less than that of a device with multiple applications running in background but otherwise idle. Furthermore, energy consumption of WiFi tethering even when a client connected to it is idle is significantly higher than that of sharing connectivity by offloading the phone functionality.
+
+These are early results, and we have not yet been able to replace the BlueTooth channel for an Android device. Nevertheless, the results point to a potential use-case where a powered \emph{PhoneLet} would be registered to the network on behalf of a WiFi-connected client with a considerable energy benefit: client connected over WiFi and exchanging messages of the same size and frequency as required by the network consumes YYmA of energy on average. The benefit is further improved when network access is shared across multiple such devices and SIM access load is balanced across them.
+
+\section{Demo: wireless SIM sharing}
+
+To demonstrate the working prototype of the system, we show our client \emph{PhoneLet} (Fig.~\ref{fig:client}), communicating either with an off-the shelf mobile device, or a SIM server running on a raspberryPI to share their
+credentials to connect to their specific networks. We do so in three steps:
+
+\begin{enumerate}
+    \item Make a phone call to the mobile server (phone) and show that it is ringing
+    \item Start sharing its SIM card with the client and show that the client is registered to the network with the same ID by making a phone call to it
+    \item Start using SIM card in the SIM server and show that the client is registered to the network with a different ID by making a call to the other number.
+\end{enumerate}
+
+In the three number of steps we show our prototype's ability to offload phone functionality off a phone - share subscriber credentials between multiple clients and select which one will be connected to the network.
+
+\section{Discussion}
+
+If we only consider Internet connectivity, one could claim that \emph{PhoneLets} can be replaced by simple tethering as supported by all modern smartphones, however it would not take into account battery consumption, resource savings from sharing a single connection or even the lower energy consumption of sharing the SIM card than sharing Internet connectivity as discussed above.
+
+As much as the telephone number is important, multiple providers have offered a service in the past whereby multiple SIM cards would be associated with the number and multiple handsets would ring on an incoming call\footnote{Google have also offered such service with Google Voice \url{http://www.google.co.uk/googlevoice/about.html\#tab=oneNumber}}, however it does not solve the problem of an increasing number of cellular clients and billing depends on the exact agreement with the service provider. A cellular network in UK has even offered a service to make phonecalls from tablets and laptops over WiFi to its users using a special app\footnote{O2 TU Go \url{http://www.o2.co.uk/apps/tu-go}}, decoupling number from the phone even further.
+
+Reprogrammable SIM cards~\cite{OFcom:2012tx} and more recently embedded SIM~\cite{Association:2013ub} have been proposed as a solution to the provisioning problem for M2M communication. Essentially, it still uses physical secure element to store credentials, but provides mechanisms to manage them over the air, primarily for long lifetime applications where replacing SIM cards is difficult. The architecture, unsurprisingly, allows operators to retain full control over the credentials, including when new ones can be installed or old ones removed, necessitating centralized management and reducing flexibility on the client side.
+
+Finally, security is a major concern and the reason why secure elements are used by operators in the first place despite multiple proposals to move towards software-based SIMs. In our proposal, however, we still maintain the separate secure element and only replace the interface to it with an arguably secure alternative widely used in industry. Furthermore, past proposals of remote SIM usage have already included mobile payment solutions~\cite{subramanian2003sim}, which are even more risky than communication alone. Detailed security analysis is subject to future work, but we believe that any additional risk created by \emph{PhoneLets} is marginal.
+
+\section{Summary}
+
+A peculiar feature of the smartphone has been the decreasing importance of it as a phone, instead becoming an Internet device. Subscription to cellular networks, however, becomes expensive and energy-consuming for multiple devices. \emph{PhoneLets} is a system that allows for offloading of phone functionality of a cellular device, instead sharing a single subscription and therefore a single link amongst multiple devices in order to save costs and energy, decreasing cellular network infrastructure load at the same time.
+
+More information and demonstration video is available via \url{phonelets.smart-e.org}.
+
+%We highly encourage that each proposal includes a video clip showcasing the demo. The video clip, no more than 60 seconds, should give a good idea of what the demo is about and how it would look like. If you do include a video clip, it will help the committee better understand and evaluate your proposal. If your demo is accepted, the video will likely be shown on the conference website and during the conference to draw people to your booth. Videos can be submitted by including a link to the video (e.g., hosted at YouTube).
+
+\section*{Resource Requirements}
+
+(1) \emph{Desk/table of approximately 2m$^2$} to accommodate the demo. (2) \emph{Two standard UK power sockets}. (3) \emph{Two cellular network subscriptions (SIM cards)}, but are to be sources by the presenters. Setup time - up to an hour for connecting the demo up and verifying operation. Other equipment includes a laptop, two smartphones and the custom-build hardware described above.
+
+% Equipment to be used for the demo.
+% Space needed and setup time required.
+% Additional facilities needed including power and Internet/wireless access.
+
+%Only show things we really cite :)
+% \nocite{*}
+{\footnotesize 
+\bibliographystyle{abbrv}
+%\footnotesize
+\bibliography{references}
+}
+
+%\appendix 
+%\input{data}
+
+\end{document}
+
+
+
+
+
+
+
