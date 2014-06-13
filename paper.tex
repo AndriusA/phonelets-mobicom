@@ -108,17 +108,17 @@
 
 
 %make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-\title{PhoneLets: offloading the phone off your phone for energy, cost and network load optimisation}
+\title{PhoneLets: offloading the phone off your phone for energy, cost and network load optimization}
 \ifnum\anon=1
 \author{[Paper: \#XXX]}% \hspace{0.2cm} \ampmtime ]}
 \else
 \numberofauthors{2}
 \author{
-% \alignauthor Andrius Aucinas\\
-% \affaddr{University of Cambridge} 
-% \and
-% \alignauthor Jon Crowcroft\\
-% \affaddr{University of Cambridge}
+\alignauthor Andrius Aucinas\\
+\affaddr{University of Cambridge} 
+\and
+\alignauthor Jon Crowcroft\\
+\affaddr{University of Cambridge}
 }
 \fi
 %for single author (just remove % characters)
@@ -184,7 +184,7 @@ One part of the network's security is that the network authenticates the subscri
 \label{fig:sequence}
 \end{figure}
 
-\section{Potential for energy efficiency}
+\section{Energy saving opportunities}
 
 A major motivation for using \emph{PhoneLets} is reduced mobile client energy consumption. In this section we provide energy consumption of a few example scenarios using our early prototype. Since the client itself is not yet energy-optimized, i.e. does not use the full energy saving capabilities of the radio module and the controlling RaspberryPI is not meant for mobile uses, we focused on energy comparison of the mobile SIM server.
 
@@ -194,24 +194,24 @@ A major motivation for using \emph{PhoneLets} is reduced mobile client energy co
 \begin{tabular}{| l | c |}
 \hline
   \textbf{Use case}         & \textbf{Avg. energy consumption (mA)}  \\ \hline
-  Idle - airplane mode      & 5  \\ \hline
-  Only BlueTooth on         & 6  \\ \hline
-  Idle - only WiFi          & 8  \\ \hline
-  Idle - 3G on              & 10 \\ \hline
-  Apps background           & 22.4 - 54.5  \\ \hline
-  WiFi Apps background      & ??    \\ \hline
+  Idle - airplane mode      & 5     \\ \hline
+  Ifle - BlueTooth          & 6     \\ \hline
+  Idle - WiFi               & 8     \\ \hline
+  Idle - 3G                 & 10    \\ \hline
+  Apps background - WiFi    & 27    \\ \hline
+  BT SIM access             & 28    \\ \hline
   WiFi frequent messages    & YY    \\ \hline
-  BT SIM access             & 28  \\ \hline
-  WiFi tethering (idle)     & 80  \\ \hline
+  Apps background - 3G      & 40    \\ \hline
+  WiFi tethering (idle)     & 80    \\ \hline
 \end{tabular}
 }
 \caption{Energy consumption of the different usage scenarios of a mobile device.}
 \label{tab:energy}
 \end{table}
 
-We measured energy consumption of a Samsung Galaxy S4 phone using the Power Monitor\footnote{Monsoon Power Monitor \url{http://www.msoon.com/LabEquipment/PowerMonitor/}}. The different values are presented in Table.~\ref{tab:energy}. Energy consumption of an idle device with applications in background (\emph{Apps background} considers a device with Google Apps, Skype, Facebook and Viber apps installed and running in background and is from our previous work~\cite{Aucinas:2013uk}.
+We measured energy consumption of a Samsung Galaxy S4 phone using the Power Monitor\footnote{Monsoon Power Monitor \url{http://www.msoon.com/LabEquipment/PowerMonitor/}}. The different values are presented in Table.~\ref{tab:energy}. Energy consumption of an idle device with applications in background (\emph{Apps background}) considers a device with Google Apps, and Facebook installed and running in background and is consistent with our earlier observations~\cite{Aucinas:2013uk}. We have only run the test on a single WiFi network, therefore we expect the figure to vary, especially because our used network is a public one with some background traffic affecting energy consumption of the device.
 
-With the default implementation of Remote SIM Access over BlueTooth, the device consumes three times the amount of energy of an idle device connected to a 3G network, which is a high energy cost to pay, however the amount is similar or even less than that of a device with multiple applications running in background but otherwise idle. Furthermore, energy consumption of WiFi tethering even when a client connected to it is idle is significantly higher than that of sharing connectivity by offloading the phone functionality.
+With the default implementation of Remote SIM Access over BlueTooth, the device consumes three times the amount of energy of an idle device connected to a 3G network, which is a high energy cost to pay, however the amount is similar or even less than that of a device with multiple applications running in background but otherwise idle. Furthermore, energy consumption of WiFi tethering even when a client connected to it is idle is significantly higher than that of sharing connectivity by offloading the phone functionality. 
 
 These are early results, and we have not yet been able to replace the BlueTooth channel for an Android device. Nevertheless, the results point to a potential use-case where a powered \emph{PhoneLet} would be registered to the network on behalf of a WiFi-connected client with a considerable energy benefit: client connected over WiFi and exchanging messages of the same size and frequency as required by the network consumes YYmA of energy on average. The benefit is further improved when network access is shared across multiple such devices and SIM access load is balanced across them.
 
@@ -248,7 +248,7 @@ More information and demonstration video is available via \url{phonelets.smart-e
 
 \section*{Resource Requirements}
 
-(1) \emph{Desk/table of approximately 2m$^2$} to accommodate the demo. (2) \emph{Two standard UK power sockets}. (3) \emph{Two cellular network subscriptions (SIM cards)}, but are to be sources by the presenters. Setup time - up to an hour for connecting the demo up and verifying operation. Other equipment includes a laptop, two smartphones and the custom-build hardware described above.
+(1) \emph{Desk/table of approximately 1.5m, standard-width} to accommodate the demo. (2) \emph{Two standard UK power sockets}. (3) \emph{Two cellular network subscriptions (SIM cards)}, but are to be sources by the presenters, (4) an HDMI display during setup. Setup time - up to an hour for connecting the demo up and verifying operation. Other equipment includes a laptop, two smartphones and the custom-build hardware described above.
 
 % Equipment to be used for the demo.
 % Space needed and setup time required.
