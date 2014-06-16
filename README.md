@@ -49,4 +49,26 @@ Must also setup dbus rules to allow communication via specific dbus (*/etc/dbus-
 	remoteSim-server.conf
 
 
+Bluetooth SIM sharing
+---------------------
+
+Bluetooth option is very simple:
+
+1. Pair the controller's (mac or raspberryPI) bluetooth with bluetooth-sap capable phone (galaxy s4)
+2. Start ofonod from ofono-bt
+3. Find the sap modem id using test/list-modems
+4. Run test/enable-modem modem_id
+
+If everything works corretly, that should be it.
+
+WiFi SIM sharing
+---------------------
+
+The only differences for this option are:
+
+1. Running ofonod from ofono-wifi
+2. Having launched the SIM server on the same network
+3. And having launched command relay daemon on the same machine (that talks to the SIM server)
+4. Repeat the steps with list-modems and enable-modem
+
 
