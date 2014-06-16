@@ -120,74 +120,37 @@ static void sap_remove(struct ofono_modem *modem)
 	ofono_modem_set_data(modem, NULL);
 }
 
-static void sap_connect_reply(DBusPendingCall *call, gpointer user_data)
-{
-	struct ofono_modem *modem = user_data;
-	struct sap_data *data = ofono_modem_get_data(modem);
-	DBusError derr;
-	DBusMessage *reply;
-	int fd, err;
-
-	DBG("");
-
-	reply = dbus_pending_call_steal_reply(call);
-
-	data->call = NULL;
-
-	if (ofono_modem_get_powered(modem))
-		goto done;
-
-	dbus_error_init(&derr);
-	if (dbus_set_error_from_message(&derr, reply)) {
-
-		DBG("Connect reply: %s", derr.message);
-
-		dbus_error_free(&derr);
-		goto done;
-	}
-
-	if (!dbus_message_get_args(reply, NULL, DBUS_TYPE_UNIX_FD, &fd,
-				DBUS_TYPE_INVALID))
-		goto done;
-
-	data->hw_modem = sap_hw_modem;
-	data->sap_driver = sap_hw_driver;
-
-	err = data->sap_driver->enable(data->hw_modem, modem, fd);
-	if (!err || err == -EINPROGRESS) {
-		dbus_message_unref(reply);
-		return;
-	}
-
-done:
-	ofono_modem_set_powered(modem, FALSE);
-	dbus_message_unref(reply);
-}
-
-/* power up hardware */
 static int sap_enable(struct ofono_modem *modem)
 {
 	struct sap_data *data = ofono_modem_get_data(modem);
 	DBusPendingCall *call;
 	int status;
+	int fd, err;
 	const char *str = "sap";
 	const char *server_path = ofono_modem_get_string(modem, "ServerPath");
 
-	DBG("%p", modem);
+	DBG("%p (hw %p)", modem, sap_hw_modem);
+	DBG("non-Bluetooth version");
 
-	status = bluetooth_send_with_reply(server_path, BLUEZ_SERIAL_INTERFACE,
-					"ConnectFD", &call, sap_connect_reply,
-					modem, NULL, DBUS_TIMEOUT,
-					DBUS_TYPE_STRING, &str,
-					DBUS_TYPE_INVALID);
+	if (ofono_modem_get_powered(modem))
+		goto done;
 
-	if (status < 0)
-		return -EINVAL;
+	
+	data->hw_modem = sap_hw_modem;
+	data->sap_driver = sap_hw_driver;
 
-	data->call = call;
+	// Pass NULL instead of Bluetooth FD as we have none in this case..
+	err = data->sap_driver->enable(data->hw_modem, modem, NULL);
+	if (!err || err == -EINPROGRESS) {
+		// dbus_message_unref(reply);
+		return;
+	}
 
-	return -EINPROGRESS;
+done:
+	ofono_modem_set_powered(modem, FALSE);
+	
 }
+
 
 static int sap_disable(struct ofono_modem *modem)
 {
