@@ -74,7 +74,7 @@ class Server(dbus.service.Object):
     @dbus.service.method("org.smart_e.RSAPServer",
                          in_signature='ay', out_signature='ay')
     def processAPDU(self, inCommand):
-        print 'HARDWARE > ', toHexString(list(bytearray(inCommand)))
+        print 'INCOMING > ', toHexString(list(bytearray(inCommand)))
         relay = []
         for i in inCommand:
             num = i & 0xFF
@@ -96,11 +96,11 @@ class Server(dbus.service.Object):
                 self.respQueue.put(resp)
 
     def process(self, inCommand):
-        print "<", toHexString(inCommand)
+        # print "<", toHexString(inCommand)
         self.client.send_json(inCommand)
         apduResponse = self.client.recv_json()
         bArrResp = list(bytearray(apduResponse))
-        print ">", toHexString(bArrResp)
+        print "OUTGOING > ", toHexString(bArrResp)
         return apduResponse
 
 

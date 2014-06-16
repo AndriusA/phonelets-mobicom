@@ -175,9 +175,12 @@ static gboolean smartcard_cb (DBusPendingCall *call, gpointer userdata)
     
     // hex_print(smartcard_response, bytes_read);
     GIOStatus status;
-    if (bytes_read > 0) 
+    if (bytes_read > 0) {
 		status = g_io_channel_write_chars(data->hw_io, smartcard_response,
 					bytes_read, &bytes_written, NULL);
+		DBG("smartcard event <--- (read %d, wrote %d bytes to hw_io)", (int)bytes_read, (int)bytes_written);
+		hex_print(buf, bytes_read);
+    }
 	if (status != G_IO_STATUS_NORMAL && status != G_IO_STATUS_AGAIN)
 		return FALSE;
 	// DBG("wrote %zu bytes back to hw_io", bytes_written);
@@ -202,12 +205,8 @@ static gboolean hw_event_cb(GIOChannel *hw_io, GIOCondition condition,
 							&bytes_read, NULL);
 
 		if (bytes_read > 0) {
-      		// hex_print(buf, bytes_read);
-    	}
-
-
-		if (bytes_read > 0) {
-			// DBG("some bytes read, rewriting");
+			DBG("some bytes read, rewriting");
+			hex_print(buf, bytes_read);
 			DBusPendingCall *call;
 			DBusMessage* processAPDUCall = dbus_message_new_method_call("org.smart_e.RSAP", "/RSAPServer", 
 				"org.smart_e.RSAPServer", "processAPDU");
@@ -522,7 +521,7 @@ static void rsen_disable_cb(gboolean ok, GAtResult *result, gpointer user_data)
 
 static int telit_sap_open(void)
 {
-	const char *device = "/dev/ttyUSB4";
+	const char *device = "/dev/ttyUSB0";
 	DBG("");
 	struct termios ti;
 	int fd;
