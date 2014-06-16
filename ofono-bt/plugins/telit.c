@@ -141,6 +141,10 @@ static gboolean bt_event_cb(GIOChannel *bt_io, GIOCondition condition,
 
 		if (bytes_read > 0) {
 			GIOStatus st;
+			if (bytes_read >= 3 && buf[0] == 0x01 && buf[1] == 0x01 && buf[2] == 0x00) {
+				DBG("do not write CONNECT_RESP");
+				return TRUE;	
+			}
 			st = g_io_channel_write_chars(data->hw_io, buf,
 					bytes_read, &bytes_written, NULL);
 			DBG("BT event <--- (read %d, wrote %d bytes to hw_io)", (int)bytes_read, (int)bytes_written);

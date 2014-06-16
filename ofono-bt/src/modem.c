@@ -2005,7 +2005,7 @@ int ofono_modem_register(struct ofono_modem *modem)
 	modem->online_watches = __ofono_watchlist_new(g_free);
 	modem->powered_watches = __ofono_watchlist_new(g_free);
 
-	emit_modem_added(modem);
+	//emit_modem_added(modem);
 	call_modemwatches(modem, TRUE);
 
 	modem->sim_watch = __ofono_modem_add_atom_watch(modem,
