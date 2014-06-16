@@ -179,7 +179,7 @@ static gboolean smartcard_cb (DBusPendingCall *call, gpointer userdata)
 		status = g_io_channel_write_chars(data->hw_io, smartcard_response,
 					bytes_read, &bytes_written, NULL);
 		DBG("smartcard event <--- (read %d, wrote %d bytes to hw_io)", (int)bytes_read, (int)bytes_written);
-		hex_print(buf, bytes_read);
+		hex_print(smartcard_response, bytes_read);
     }
 	if (status != G_IO_STATUS_NORMAL && status != G_IO_STATUS_AGAIN)
 		return FALSE;
