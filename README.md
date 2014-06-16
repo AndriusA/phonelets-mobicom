@@ -43,3 +43,10 @@ Given previously setup private keys, they must be located as:
 	private_keys/client.key_secret
 	public_keys/server.key
 	public_keys/client.key
+
+Must also setup dbus rules to allow communication via specific dbus (*/etc/dbus-1/system.d/remoteSim-server.conf*):
+
+	remoteSim-server.conf
+
+
+
