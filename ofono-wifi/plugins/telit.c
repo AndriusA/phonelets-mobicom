@@ -33,6 +33,9 @@
 #include <sys/socket.h>
 
 #include <glib.h>
+#include <glib-object.h>
+#include <gdbus.h>
+// #include <gio/gio.h>
 #include <gatchat.h>
 #include <gattty.h>
 
@@ -63,6 +66,13 @@
 static const char *none_prefix[] = { NULL };
 static const char *rsen_prefix[]= { "#RSEN:", NULL };
 
+
+#define	SMARTE_SERVICE "org.smart_e.RSAP"
+#define	SMARTE_INTERFACE		SMARTE_SERVICE ".RSAPServer"
+// static GDBusProxy *dbProxy;
+// static GDBusClient *cardReader;
+static DBusConnection *connection;
+
 struct telit_data {
 	GAtChat *chat;		/* AT chat */
 	GAtChat *modem;		/* Data port */
@@ -84,13 +94,13 @@ static void telit_debug(const char *str, void *user_data)
 }
 
 static void hex_print(const char *buf, const gsize bytes_read) {
-    char buf_str[300 * 3 + 1] = { 0 };
-    char *endBuf = buf_str;
-    int i;
-    for (i = 0; i < bytes_read; i++) {
-        endBuf += sprintf(endBuf, "%02X ", (unsigned char)buf[i]);
-    }
-    DBG("read %zu bytes: %s", bytes_read, buf_str);
+	char buf_str[300 * 3 + 1] = { 0 };
+	char *endBuf = buf_str;
+	int i;
+	for (i = 0; i < bytes_read; i++) {
+		endBuf += sprintf(endBuf, "%02X ", (unsigned char)buf[i]);
+	}
+	DBG("read %zu bytes: %s", bytes_read, buf_str);
 }
 
 static void sap_close_io(struct ofono_modem *modem)
@@ -115,51 +125,6 @@ static void sap_close_io(struct ofono_modem *modem)
 		g_source_remove(data->hw_watch);
 }
 
-static void bt_watch_remove(gpointer userdata)
-{
-	struct ofono_modem *modem = userdata;
-	struct telit_data *data = ofono_modem_get_data(modem);
-
-	ofono_modem_set_powered(modem, FALSE);
-
-	data->bt_watch = 0;
-}
-
-static gboolean bt_event_cb(GIOChannel *bt_io, GIOCondition condition,
-							gpointer userdata)
-{
-	struct ofono_modem *modem = userdata;
-	struct telit_data *data = ofono_modem_get_data(modem);
-
-	if (condition & G_IO_IN) {
-		GIOStatus status;
-		gsize bytes_read, bytes_written;
-		gchar buf[300];
-
-		status = g_io_channel_read_chars(bt_io, buf, 300,
-							&bytes_read, NULL);
-
-		if (bytes_read > 0) {
-			GIOStatus st;
-			st = g_io_channel_write_chars(data->hw_io, buf,
-					bytes_read, &bytes_written, NULL);
-			DBG("BT event <--- (read %d, wrote %d bytes to hw_io)", (int)bytes_read, (int)bytes_written);
-       		hex_print(buf, bytes_read);
-       		if (st != G_IO_STATUS_NORMAL && st != G_IO_STATUS_AGAIN) {
-       			DBG("Bad status");
-				return FALSE;
-       		}
-		}
-
-		if (status != G_IO_STATUS_NORMAL && status != G_IO_STATUS_AGAIN)
-			return FALSE;
-
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
 static void hw_watch_remove(gpointer userdata)
 {
 	struct ofono_modem *modem = userdata;
@@ -170,25 +135,100 @@ static void hw_watch_remove(gpointer userdata)
 	data->hw_watch = 0;
 }
 
-static gboolean hw_event_cb(GIOChannel *hw_io, GIOCondition condition,
-							gpointer userdata)
+// Callback function meant to replace bt_event_cb
+// interacting with the smartcard over a generic DBUS connection rather than bluetooth
+static gboolean smartcard_cb (DBusPendingCall *call, gpointer userdata)
 {
 	struct ofono_modem *modem = userdata;
 	struct telit_data *data = ofono_modem_get_data(modem);
+	DBusError derr;
+	DBusMessage *reply;
+
+	// DBG("smartcard callback");
+
+	reply = dbus_pending_call_steal_reply(call);
+
+	dbus_error_init(&derr);
+	if (dbus_set_error_from_message(&derr, reply)) {
+		// DBG("Connect reply: %s", derr.message);
+		dbus_error_free(&derr);
+		return FALSE;
+	}
+
+	DBusMessageIter MsgIter;
+	dbus_message_iter_init(reply, &MsgIter);
+	int bytes_read;
+	gsize bytes_written;
+	gchar *smartcard_response;
+	if (dbus_message_iter_get_arg_type(&MsgIter) == DBUS_TYPE_ARRAY) {
+		// DBG("retrieving reply message as array");
+		if (dbus_message_iter_get_element_type(&MsgIter) == DBUS_TYPE_BYTE) {
+            // DBG("element type array, recursing");
+			DBusMessageIter arrayIter;
+			dbus_message_iter_recurse(&MsgIter, &arrayIter);
+			dbus_message_iter_get_fixed_array(&arrayIter, &smartcard_response, &bytes_read);
+		}
+        else {
+            // DBG("not an array - can't read");
+        }
+	}
+    
+    // hex_print(smartcard_response, bytes_read);
+    GIOStatus status;
+    if (bytes_read > 0) 
+		status = g_io_channel_write_chars(data->hw_io, smartcard_response,
+					bytes_read, &bytes_written, NULL);
+	if (status != G_IO_STATUS_NORMAL && status != G_IO_STATUS_AGAIN)
+		return FALSE;
+	// DBG("wrote %zu bytes back to hw_io", bytes_written);
+	dbus_message_unref(reply);
+	dbus_pending_call_unref(call);
+	return TRUE;
+}
+
+static gboolean hw_event_cb(GIOChannel *hw_io, GIOCondition condition,
+							gpointer userdata)
+{
+	//struct ofono_modem *modem = userdata;
+	//struct telit_data *data = ofono_modem_get_data(modem);
+	// DBG("enter hw_event_cb");
 
 	if (condition & G_IO_IN) {
 		GIOStatus status;
-		gsize bytes_read, bytes_written;
-		gchar buf[300];
+		gsize bytes_read;
+		gchar buf[300] = "";
 
 		status = g_io_channel_read_chars(hw_io, buf, 300,
 							&bytes_read, NULL);
 
 		if (bytes_read > 0) {
-			g_io_channel_write_chars(data->bt_io, buf,
-					bytes_read, &bytes_written, NULL);
-			DBG("HW event --->");
-			hex_print(buf, bytes_read);
+      		// hex_print(buf, bytes_read);
+    	}
+
+
+		if (bytes_read > 0) {
+			// DBG("some bytes read, rewriting");
+			DBusPendingCall *call;
+			DBusMessage* processAPDUCall = dbus_message_new_method_call("org.smart_e.RSAP", "/RSAPServer", 
+				"org.smart_e.RSAPServer", "processAPDU");
+			// DBG("message created");
+			const char *arr = buf;
+			dbus_message_append_args(processAPDUCall, DBUS_TYPE_ARRAY, 
+				DBUS_TYPE_BYTE, &arr, bytes_read, DBUS_TYPE_INVALID);
+			// DBG("argument appended. sending with reply");
+			if (!dbus_connection_send_with_reply(connection, processAPDUCall, &call, -1)){
+				// DBG("APDU failed");
+				ofono_error("processAPDUCall failed");
+				// err = -EIO;
+				dbus_message_unref(processAPDUCall);
+				return FALSE;
+			}
+			// DBG("set up callback");
+			dbus_pending_call_set_notify(call, smartcard_cb, userdata, NULL);
+			dbus_pending_call_block(call);
+			// dbus_connection_flush(connection);
+			// dbus_pending_call_unref(call);
+			// dbus_message_unref(processAPDUCall);
 		}
 
 		if (status != G_IO_STATUS_NORMAL && status != G_IO_STATUS_AGAIN)
@@ -340,15 +380,18 @@ static void cfun_enable_cb(gboolean ok, GAtResult *result, gpointer user_data)
 static int telit_enable(struct ofono_modem *modem)
 {
 	struct telit_data *data = ofono_modem_get_data(modem);
-
+	
 	DBG("%p", modem);
 
 	data->modem = open_device(modem, "Modem", "Modem: ");
-	if (data->modem == NULL)
+	if (data->modem == NULL) {
+		DBG("modem NULL");
 		return -EINVAL;
+	}
 
 	data->chat = open_device(modem, "Aux", "Aux: ");
 	if (data->chat == NULL) {
+		DBG("chat NULL");
 		g_at_chat_unref(data->modem);
 		data->modem = NULL;
 		return -EIO;
@@ -360,18 +403,31 @@ static int telit_enable(struct ofono_modem *modem)
 	 * Disable command echo and
 	 * enable the Extended Error Result Codes
 	 */
+	DBG("ATE0 +CMEE=1");
 	g_at_chat_send(data->chat, "ATE0 +CMEE=1", none_prefix,
 				NULL, NULL, NULL);
+	DBG("Sent");
+	sleep(1);
 
 	/*
 	 * Disable sim state notification so that we sure get a notification
 	 * when we enable it again later and don't have to query it.
 	 */
-	g_at_chat_send(data->chat, "AT#QSS=0", none_prefix, NULL, NULL, NULL);
 
+	DBG("#QSS: (%p)", data->chat);
+	g_at_chat_register(data->chat, "#QSS:", telit_qss_notify, FALSE, modem, NULL);
+	DBG("Registered");
+
+	DBG("AT#QSS=2");
+	g_at_chat_send(data->chat, "AT#QSS=2", none_prefix, NULL, NULL, NULL);
+	DBG("Sent");
+
+	// sleep(10);
 	/* Set phone functionality */
-	g_at_chat_send(data->chat, "AT+CFUN=4", none_prefix,
-				cfun_enable_cb, modem, NULL);
+	DBG("AT+CFUN=4,0");
+	g_at_chat_send(data->chat, "AT+CFUN=4,0", none_prefix, cfun_enable_cb, modem, NULL);
+	DBG("Sent");
+	sleep(1);
 
 	return -EINPROGRESS;
 }
@@ -397,7 +453,6 @@ static void telit_rsen_notify(GAtResult *result, gpointer user_data)
 		sap_close_io(modem);
 		return;
 	}
-
 	telit_enable(modem);
 }
 
@@ -467,7 +522,8 @@ static void rsen_disable_cb(gboolean ok, GAtResult *result, gpointer user_data)
 
 static int telit_sap_open(void)
 {
-	const char *device = "/dev/ttyUSB0";
+	const char *device = "/dev/ttyUSB4";
+	DBG("");
 	struct termios ti;
 	int fd;
 
@@ -497,19 +553,18 @@ static int telit_sap_enable(struct ofono_modem *modem,
 					int bt_fd)
 {
 	struct telit_data *data = ofono_modem_get_data(modem);
-
 	data->modem = open_device(modem, "Modem", "Modem: ");
-    if (data->modem == NULL)
-        return -EINVAL;
+	if (data->modem == NULL)
+		return -EINVAL;
 
-    data->chat = open_device(modem, "Aux", "Aux: ");
-    if (data->chat == NULL) {
-        g_at_chat_unref(data->modem);
-        data->modem = NULL;
-        return -EIO;
-    }
+	data->chat = open_device(modem, "Aux", "Aux: ");
+	if (data->chat == NULL) {
+		g_at_chat_unref(data->modem);
+		data->modem = NULL;
+		return -EIO;
+	}
 
-    g_at_chat_set_slave(data->modem, data->chat);   
+	g_at_chat_set_slave(data->modem, data->chat);
 
 	int fd;
 
@@ -519,6 +574,7 @@ static int telit_sap_enable(struct ofono_modem *modem,
 	if (fd < 0)
 		goto error;
 
+	DBG("init HW io");
 	data->hw_io = g_io_channel_unix_new(fd);
 	if (data->hw_io == NULL) {
 		close(fd);
@@ -529,24 +585,39 @@ static int telit_sap_enable(struct ofono_modem *modem,
 	g_io_channel_set_buffered(data->hw_io, FALSE);
 	g_io_channel_set_close_on_unref(data->hw_io, TRUE);
 
-	data->bt_io = g_io_channel_unix_new(bt_fd);
-	if (data->bt_io == NULL)
-		goto error;
 
-	g_io_channel_set_encoding(data->bt_io, NULL, NULL);
-	g_io_channel_set_buffered(data->bt_io, FALSE);
-	g_io_channel_set_close_on_unref(data->bt_io, TRUE);
+	// DBUS connectio to smart card reader daemon
+	DBG("Dbus connection to smartcard");
+	DBusError error;
+	dbus_error_init(&error);
+	connection = dbus_bus_get_private(DBUS_BUS_SYSTEM, &error);
+	if (!connection) {
+		DBG("dbus_bus_get failed");
+		if (dbus_error_is_set(&error)) {
+			DBG("%s", error.message);
+		}
+		return -EIO;
+	}
+	if (!dbus_bus_name_has_owner(connection, "org.smart_e.RSAP", &error)) {
+		DBG("org.smart_e.RSAP has no owner on the bus");
+		return -EIO;
+	}
+	// cardReader = g_dbus_client_new(connection, "org.smart_e.RSAP", "/");
+	// dbProxy = g_dbus_proxy_new(connection, "/RSAPServer","org.smart_e.RSAPServer");	
 
-	data->hw_watch = g_io_add_watch_full(data->hw_io, G_PRIORITY_DEFAULT,
+	data->hw_watch = g_io_add_watch_full(data->hw_io, G_PRIORITY_HIGH,
 				G_IO_HUP | G_IO_ERR | G_IO_NVAL | G_IO_IN,
 				hw_event_cb, modem, hw_watch_remove);
 
-	data->bt_watch = g_io_add_watch_full(data->bt_io, G_PRIORITY_DEFAULT,
-				G_IO_HUP | G_IO_ERR | G_IO_NVAL | G_IO_IN,
-				bt_event_cb, modem, bt_watch_remove);
+	// No bt_watch either
+	// data->bt_watch = g_io_add_watch_full(data->bt_io, G_PRIORITY_DEFAULT,
+	// 			G_IO_HUP | G_IO_ERR | G_IO_NVAL | G_IO_IN,
+	// 			bt_event_cb, modem, bt_watch_remove);
 
 	data->sap_modem = sap_modem;
 
+	DBG("at chat start");
+	printf("telit_sap_enable Data chat %p\n", data->chat);
 	g_at_chat_register(data->chat, "#RSEN:", telit_rsen_notify,
 				FALSE, modem, NULL);
 
@@ -559,8 +630,8 @@ static int telit_sap_enable(struct ofono_modem *modem,
 	return -EINPROGRESS;
 
 error:
-	shutdown(bt_fd, SHUT_RDWR);
-	close(bt_fd);
+	// shutdown(bt_fd, SHUT_RDWR);
+	// close(bt_fd);
 
 	sap_close_io(modem);
 	return -EINVAL;
@@ -610,8 +681,8 @@ static void telit_post_sim(struct ofono_modem *modem)
 
 	if (gprs && gc)
 		ofono_gprs_add_context(gprs, gc);
-}
 
+}
 static void set_online_cb(gboolean ok, GAtResult *result, gpointer user_data)
 {
 	struct cb_data *cbd = user_data;
@@ -627,7 +698,7 @@ static void telit_set_online(struct ofono_modem *modem, ofono_bool_t online,
 {
 	struct telit_data *data = ofono_modem_get_data(modem);
 	struct cb_data *cbd = cb_data_new(cb, user_data);
-	char const *command = online ? "AT+CFUN=1" : "AT+CFUN=4";
+	char const *command = online ? "AT+CFUN=1,0" : "AT+CFUN=4,0";
 
 	DBG("modem %p %s", modem, online ? "online" : "offline");
 
@@ -658,13 +729,15 @@ static void telit_post_online(struct ofono_modem *modem)
 }
 
 static struct bluetooth_sap_driver sap_driver = {
-	.name = "telit",
-	.enable = telit_sap_enable,
-	.pre_sim = telit_pre_sim,
-	.post_sim = telit_post_sim,
+	.name 		= "telit",
+	//.probe 	- defined elsewhere
+	//.remove 	- defined elsewhere
+	.enable 	= telit_sap_enable,		// different
+	.disable 	= telit_sap_disable,	// different
 	.set_online = telit_set_online,
-	.post_online = telit_post_online,
-	.disable = telit_sap_disable,
+	.pre_sim 	= telit_pre_sim,
+	.post_sim 	= telit_post_sim,
+	.post_online 	= telit_post_online,
 };
 
 static int telit_probe(struct ofono_modem *modem)
@@ -715,7 +788,6 @@ static struct ofono_modem_driver telit_driver = {
 
 static int telit_init(void)
 {
-	DBG("Register telit driver");
 	return ofono_modem_driver_register(&telit_driver);
 }
 
