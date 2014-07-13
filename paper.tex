@@ -1,5 +1,6 @@
 % This version uses the latex2e styles, not the very ancient 2.09 stuff.
-\documentclass{sig-alternate-10pt}
+% \documentclass{sig-alternate-10pt}
+\documentclass{sig-alternate-2013}
 \usepackage{endnotes,url}
 %\usepackage{sig-alternate-10pt,endnotes}
 \usepackage{epsfig}
@@ -18,6 +19,7 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{listings}
+\DeclareCaptionType{copyrightbox}
 
 
 %\pdfpagewidth 8.5in
@@ -42,7 +44,7 @@
 
 %%%%%%%  Author Notes %%%%%%%
 %
-\ifnum\shownotes=1
+\ifnum\shownotes=0
 \newcommand{\authnote}[2]{{ $\ll$\textsf{\footnotesize #1 notes: #2}$\gg$}}
 \else
 \newcommand{\authnote}[2]{}
@@ -95,9 +97,21 @@
 \newtheorem{proposition}{Proposition}
 
 \usepackage{enumitem}
-\setlist{nolistsep}
+% \setlist{nolistsep}
 
 %Model parameters
+
+\clubpenalty=10000 
+\widowpenalty = 10000 
+\newfont{\mycrnotice}{ptmr8t at 7pt}
+\newfont{\myconfname}{ptmri8t at 7pt}
+\let\crnotice\mycrnotice%
+\let\confname\myconfname%
+\permission{Permission to make digital or hard copies of part or all of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage, and that copies bear this notice and the full citation on the first page. Copyrights for third-party components of this work must be honored. For all other uses, contact the owner/author(s). Copyright is held by the author/owner(s).}
+\conferenceinfo{MobiCom'14,}{September 7-11, 2014, Maui, Hawaii, USA.} 
+\copyrightetc{ACM \the\acmcopyr}
+\crdata{ACM 978-1-4503-2783-1/14/09. \\
+http://dx.doi.org/10.1145/2639108.2641744}
 
 \usepackage[breaklinks=true]{hyperref}
 \frenchspacing
@@ -108,17 +122,21 @@
 
 
 %make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-\title{Demo: PhoneLets -- offloading the phone off your phone for energy, cost and network load optimization}
+\title{Demo: PhoneLets -- Offloading the Phone off your Phone for Energy, Cost and Network Load Optimization}
 \ifnum\anon=1
 \author{[Paper: \#XXX]}% \hspace{0.2cm} \ampmtime ]}
 \else
 \numberofauthors{2}
 \author{
 \alignauthor Andrius Aucinas\\
-\affaddr{University of Cambridge} 
+\affaddr{Computer Laboratory}\\
+\affaddr{University of Cambridge}
+\email{andrius.aucinas@cl.cam.ac.uk} 
 \and
 \alignauthor Jon Crowcroft\\
+\affaddr{Computer Laboratory}\\
 \affaddr{University of Cambridge}
+\email{jon.crowcroft@cl.cam.ac.uk}
 }
 \fi
 %for single author (just remove % characters)
@@ -133,18 +151,22 @@
 This demo presents how phone functionality can be offloaded from a smartphone over wireless link to a \emph{PhoneLet} by sharing one SIM card across multiple devices. This can lead to significant cost and network load reductions by reducing the number of simultaneously connected mobile clients. Furthermore, it can bring significant energy reductions for the mobile user when connected to a powered \emph{PhoneLet}. It absorbs the energy cost of inefficient mobile applications' communication patterns, instead providing connectivity for the user over a WiFi link.
 \end{abstract} 
 
+\category{C.2.3}{Computer-communication networks}{Network Operations}{Network Management}
+
+\keywords{Mobile; Energy; Cellular; Networks; SIM; Subscriber Management}
+
 \section{What PhoneLets are}
 \label{section:intro}
 
-A modern smartphone has more in common with a computer than a phone, and connectivity to the Internet and surrounding devices (the \emph{Internet of Things}) is tipping the balance even further. Importance of cellular networks, however, remains as they provide almost ubiquitous Internet connectivity around the world. Cellular connectivity has its own problems. This demo shows how PhoneLets allow one SIM (Subscriber Identity Module) to be shared between nearby devices. This addresses the following problems with cellular connectivity:
+A modern smartphone has more in common with a computer than a phone, and connectivity to the Internet and surrounding devices (the \emph{Internet of Things}) is tipping the balance even further. Importance of cellular networks, however, remains as they provide almost ubiquitous Internet connectivity around the world. Cellular connectivity has its own problems. This demo shows how \emph{PhoneLets} allow one SIM (Subscriber Identity Module) to be shared between nearby devices. This addresses the following problems with cellular connectivity:
 
-Firstly, connectivity is relatively expensive for users~\cite{Anonymous:2013ut}, typically requiring a separate subscription for each device connected to the cellular network, e.g. smartphone and tablet as well as broadband connectivity at home and at work. Using PhoneLets to share a single SIM across devices solves this issue.
+Firstly, connectivity is relatively expensive for users~\cite{Anonymous:2013ut}, typically requiring a separate subscription for each device connected to the cellular network, e.g. smartphone and tablet as well as broadband connectivity at home and at work. Using \emph{PhoneLets} to share a single SIM across devices solves this issue.
 
-Secondly, the increasing number of connected, periodically communicating clients increases infrastructure costs and also increases cellular network load, in extreme cases causing \emph{signaling storms}~\cite{Yang:wh} that can bring down an entire network. PhoneLets reduces the number of simultaneously connected clients by sharing the same cellular link across multiple clients.
+Secondly, the increasing number of connected, periodically communicating clients increases infrastructure costs and also increases cellular network load, in extreme cases causing \emph{signaling storms}~\cite{Yang:wh} that can bring down an entire network. \emph{PhoneLets} reduce the number of simultaneously connected clients by sharing the same cellular link across multiple clients.
 
 Finally, energy consumption of always connected clients is high compared to short-range radio technologies. Sharing a cellular link also helps reduce it for mobile devices.
 
-\emph{PhoneLets} enable phone offloading by exploiting remote SIM functionality of existing hardware. A cellular module exchange commands with a SIM/UICC module over a wireless communication link rather than direct, physical connection. Uses of such technology have included automotive as well as electronic currency~\cite{subramanian2003sim}. \emph{PhoneLets} infrastructure establishes and manages secure communication channels between participating entities and allows a device to connect to a cellular network without a physical SIM module being present.
+\emph{PhoneLets} enable phone offloading by exploiting remote SIM functionality of existing hardware. A cellular module exchange commands with a SIM/UICC module over a wireless communication link rather than direct, physical connection. Uses of such technology have included automotive as well as electronic currency~\cite{subramanian2003sim}. \emph{PhoneLets} infrastructure establishes and manages secure communication channels between participating entities and allows a device to connect to a cellular network without a physical SIM card.
 
 
 \section{PhoneLets Design}
@@ -152,26 +174,24 @@ Finally, energy consumption of always connected clients is high compared to shor
 \begin{figure}
 \centering
 \includegraphics[width=0.9\columnwidth]{figs/arch}
-\vspace{-3mm}
-\caption{Architecture}
+\caption{Architecture of PhoneLets and interaction with different types of servers}
 \label{fig:arch}
-\vspace{-2mm}
 \end{figure}
 
 The overall concept and system architecture is shown in Fig.~\ref{fig:arch}. There are three types of entities: 1) mobile server, a mobile device which can share its SIM with other clients, 2) SIM server which may host and provide more sets of credentials over local or wide-area networks and 3) a mobile client which can use either of the methods.
 
-Our design extends the standardized RSAP (Remote SIM Access Protocol) version by using a SIM server which is not capable of mobile connectivity itself and by using arbitrary communication links to access a remote SIM card (\emph{no SIM} in the mobile client). Our work for this demo focused primarily on the client and SIM server design, and we are using off-the-shelf hardware as the mobile server to demonstrate backwards-compatibility.
+The SIM card is a special I/O device in a mobile platform: due to its security requirements it is not exposed to the platform's operating system. Instead, it is managed by the modem's firmware which routes all communication between the network and the subscriber module. Standard remote IO approaches are similar in their nature (\eg RIO~\cite{Sani:2014hs} enables transparently accessing I/O devices of a remote mobile system) but are not applicable in this setting.
+
+Interaction with the subscriber module requires lower level protocols understood by the modem firmware. Our design extends the standard RSAP (Remote SIM Access Protocol)~\cite{Anonymous:2008vz} by using a SIM server which is not capable of mobile connectivity itself and by using arbitrary communication links to access a remote SIM card (\emph{no SIM} in the mobile client). Our work for this demo focused primarily on the client and SIM server design, and we are using off-the-shelf hardware as the mobile server to demonstrate backwards-compatibility. 
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.9\columnwidth]{figs/sequence}
-% \vspace{-2mm}
+\includegraphics[width=0.95\columnwidth]{figs/sequence}
 \caption{Communication sequence between client, server and remote SIM card}
 \label{fig:sequence}
-% \vspace{-4mm}
 \end{figure}
 
-The mobile Client can obtain network credentials from any server -- a user's mobile phone, a co-located or a remote SIM server -- as long as it can reach it. The key observation is that there are few operations that require access to the SIM card due to its interface speed (it would be infeasible to use it on the data path) and instead it is used to generate encryption keys. The generating keys, however, can never be accessed directly. Part of the network's security however comes from the network authenticating the subscriber for any major operation (e.g. placing or receiving calls, establishing PDP context). The cellular module therefore must always be able to access the remote card using standard Application Protocol Data Unit (APDU) messages (Fig.~\ref{fig:sequence}).
+The mobile client can obtain network credentials from any server -- a user's mobile phone, a co-located or a remote SIM server -- as long as it can reach it. The key observation is that there are few operations that require access to the SIM card due to its interface speed (it would be infeasible to use it on the data path) and instead it is used to generate encryption keys. The generating keys, however, can never be accessed directly. Part of the network's security however comes from the network authenticating the subscriber for any major operation (e.g. placing or receiving calls, establishing PDP context). The cellular module therefore must always be able to access the remote card using standard Application Protocol Data Unit (APDU) messages (Fig.~\ref{fig:sequence}).
 
 Importantly, we do not clone the SIM card and by design the system disables connectivity for one device before enabling it for another one to prevent multiple devices sharing the same credentials simultaneously. Only one device is connected to the cellular network and may share (\emph{tether}) the connectivity to other devices over another channel. One cellular module is also only capable of being registered with one network, enforcing a strict one-to-one mapping.
 
@@ -179,16 +199,14 @@ Importantly, we do not clone the SIM card and by design the system disables conn
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.9\columnwidth]{figs/client}
-% \vspace{-2mm}
+\includegraphics[width=0.95\columnwidth]{figs/client}
 \caption{Client prototype}
 \label{fig:client}
-% \vspace{-3mm}
 \end{figure}
 
-Our demo mobile client (Fig.~\ref{fig:client}), the \emph{PhoneLet}, consists of a Telit UC864 cellular module connected to a raspberryPI as a controller, which also uses WiFi and BlueTooth dongles for local wireless connectivity. The controller runs a modified version of the Ofono open telephony stack and manages communication between the cellular module and multiple backends.
+Our demo mobile client (Fig.~\ref{fig:client}), the \emph{PhoneLet}, consists of a Telit UC864 cellular module connected to a raspberryPI as a controller, which also uses WiFi and BlueTooth (BT) dongles for local wireless connectivity. The controller runs a modified version of the Ofono open telephony stack and manages communication between the cellular module and multiple backends.
 
-The two servers are an off-the-shelf Samsung Galaxy S4 and our custom server that only interfaces with SIM cards through a smartcard reader, also running on a raspberryPI. In our prototype, the server is connected to a WiFi AP to be reachable by the mobile client. We replace the BlueTooth communication channel with a more secure option - TCP link with certificate-based authentication of both client and server, and strong encryption for all data exchange. Once the client establishes a connection to either backend, it registers with the network and takes on the role of a phone.
+The two example servers are an off-the-shelf Samsung Galaxy S4 and our custom server that only interfaces with SIM cards through a smartcard reader, also running on a raspberryPI. In our prototype, the server is connected to a WiFi AP to be reachable by the mobile client. We replace the BT communication channel with a more secure option - TCP link with certificate-based authentication of both client and server, and strong encryption for all data exchange. Once the client establishes a connection to either backend, it registers with the network and takes on the role of a phone.
 
 \section{Energy saving opportunities}
 \label{sec:energy}
@@ -211,19 +229,17 @@ Reduced mobile client energy consumption is an important motivation for \emph{Ph
   WiFi tethering (idle)     & 80    \\ \hline
 \end{tabular}
 }
-% \vspace{-2mm}
 \caption{Energy consumption of an idle device with different radios enabled. (Apps background = Google apps and Facebook)}
 \label{tab:energy}
-% \vspace{-3mm}
 \end{table}
 
-Energy consumption of a Samsung Galaxy S4 was measured\footnote{Using Monsoon Power Monitor \url{http://www.msoon.com/LabEquipment/PowerMonitor/}} in a number of scenarios. The different values are presented in Table.~\ref{tab:energy}\footnote{Energy consumption provided as average current drawn because it is independent of current battery voltage}. 
+Energy consumption of a Samsung Galaxy S4 was measured\footnote{Using Monsoon Power Monitor \url{http://www.msoon.com/LabEquipment/PowerMonitor/}} in a number of scenarios. The different values are presented in Table.~\ref{tab:energy}\footnote{Current drain (mA) is chosen over power (mW) as power depends on voltage that decays with the battery discharge}. 
 
 The absolute values will vary with different devices and network configuration or conditions and application use, but the overall results remain. In particular, energy consumption of the different idle radios is similar, but cellular networks are significantly less efficient for current applications' network usage patterns~\cite{Aucinas:2013uk}. Therefore, replacing the cellular link with a WiFi one to another, powered device can bring significant savings - 32.5\% in our example case.
 
-The default BlueTooth implementation of RSAP is not efficient enough - maintaining access alone consumes almost three times the amount of energy of an idle device connected to a 3G network. Instead, we have implemented SIM sharing over WiFi using our custom client and verified that the BlueTooth version is unnecessarily wasteful - once the PhoneLet has registered to the network, there is no communication with the SIM server for as long as the device is idle. For example, a phonecall is successfully received after 30 minutes of no activity. The current Android platform does not allow RSAP to run over WiFi, but based on our measurements we expect energy consumption of an optimized implementation to be very close to that of an idle WiFi channel - 3.5x less than BlueTooth.
+The default BT implementation of RSAP is not efficient enough - maintaining access alone consumes almost three times the amount of energy of an idle device connected to a 3G network. Instead, we have implemented SIM sharing over WiFi using our custom client and verified that the BT version is unnecessarily wasteful - once the PhoneLet has registered to the network, there is no communication with the SIM server for as long as the device is idle. For example, a phonecall is successfully received after 30 minutes of no activity. The current Android platform does not allow RSAP to run over WiFi, but based on our measurements we expect energy consumption of an optimized implementation to be very close to that of an idle WiFi channel - 3.5x less than BT.
 
-Finally, we measured energy consumption of WiFi tethering. With just one idle client it is almost 3x higher than the BlueTooth case. RSAP is effectively an alternative to WiFi tethering when the mobile client provides connectivity to other devices. So similarly to above, we expect energy consumption of an optimized WiFi mobile client to be close to 10x less than WiFi tethering.
+Finally, we measured energy consumption of WiFi tethering. With just one idle client it is almost 3x higher than the BT case. RSAP is effectively an alternative to WiFi tethering when the mobile client provides connectivity to other devices. So similarly to above, we expect energy consumption of an optimized WiFi mobile client to be close to 10x less than WiFi tethering.
 
 These are early results, but they point to a potential use-case where a powered \emph{PhoneLet} is registered to the network on behalf of a WiFi-connected client at a considerable energy benefit. Outside the scope of this demo, the benefit would be further improved when network access is shared across multiple such devices and SIM access load is balanced across them as the savings for each individual device would add up.
 
@@ -245,6 +261,8 @@ In addition to connectivity, \emph{PhoneLets} offers management of an individual
 
 One cellular network in UK has offered a service to make phonecalls from tablets and laptops over WiFi to its users using a special app\footnote{O2 TU Go \url{http://www.o2.co.uk/apps/tu-go}} further blurring the line between mobile and the Internet. If WiFi Internet connectivity is available, the approach could help reduce energy consumption by disabling cellular radio.
 
+It is well known that WiFi tethering consumes a lot of energy. Cool-Tether~\cite{Sharma:2009fd} proposed to reverse the roles of a mobile gateway and client and turn the client into WiFi AP. Our proposal also reduces energy consumption of the mobile gateway by completely changing the roles of the entities. Instead, the client (\emph{PhoneLet}) uses the cellular network directly, avoiding additional wireless communication with the gateway.
+
 Reprogrammable SIM cards~\cite{OFcom:2012tx} such as embedded SIM~\cite{Association:2013ub} have been proposed for provisioning in M2M communication. They maintain a physical secure element to store credentials, but provide mechanisms to manage them over the air. The architecture, allows operators to retain full control over the credentials, including when new ones can be installed or old ones removed, with necessarily centralized management and reduced flexibility on the client side.
 
 Finally, questions that remain to be answered in future work include not only optimizations of the management and control protocols, but also the development of usage policies in multi-user environments and guaranteed isolation properties as well as adaptation of energy-aware routing protocols for distributed nodes.
@@ -255,19 +273,9 @@ Increasingly, smartphones are replicating computer use, with phone now a very se
 
 More information and demonstration video is available via \url{phonelets.smart-e.org}.
 
-%We highly encourage that each proposal includes a video clip showcasing the demo. The video clip, no more than 60 seconds, should give a good idea of what the demo is about and how it would look like. If you do include a video clip, it will help the committee better understand and evaluate your proposal. If your demo is accepted, the video will likely be shown on the conference website and during the conference to draw people to your booth. Videos can be submitted by including a link to the video (e.g., hosted at YouTube).
-
-\section*{Resource Requirements}
-
-(1) \emph{Desk/table of approximately 2m, standard-width} to accommodate the demo. (2) \emph{Two standard UK power sockets}. (3) \emph{Two cellular network subscriptions (SIM cards)}, which are to be sourced by the presenters, (4) WiFi AP for local communication. Setup time - up to an hour for connecting the demo up and verifying operation. Other equipment includes a laptop, two smartphones and the custom-build hardware described above.
-
-% Equipment to be used for the demo.
-% Space needed and setup time required.
-% Additional facilities needed including power and Internet/wireless access.
-
 %Only show things we really cite :)
 % \nocite{*}
-{\footnotesize 
+{ 
 \bibliographystyle{abbrv}
 %\footnotesize
 \bibliography{references}
