@@ -97,12 +97,10 @@
 \newtheorem{proposition}{Proposition}
 
 \usepackage{enumitem}
-% \setlist{nolistsep}
+\setlist{nolistsep}
 
 %Model parameters
 
-\clubpenalty=10000 
-\widowpenalty = 10000 
 \newfont{\mycrnotice}{ptmr8t at 7pt}
 \newfont{\myconfname}{ptmri8t at 7pt}
 \let\crnotice\mycrnotice%
@@ -110,8 +108,10 @@
 \permission{Permission to make digital or hard copies of part or all of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage, and that copies bear this notice and the full citation on the first page. Copyrights for third-party components of this work must be honored. For all other uses, contact the owner/author(s). Copyright is held by the author/owner(s).}
 \conferenceinfo{MobiCom'14,}{September 7-11, 2014, Maui, Hawaii, USA.} 
 \copyrightetc{ACM \the\acmcopyr}
-\crdata{ACM 978-1-4503-2783-1/14/09. \\
+\crdata{978-1-4503-2783-1/14/09. \\
 http://dx.doi.org/10.1145/2639108.2641744}
+\clubpenalty=10000 
+\widowpenalty = 10000 
 
 \usepackage[breaklinks=true]{hyperref}
 \frenchspacing
@@ -148,7 +148,7 @@ http://dx.doi.org/10.1145/2639108.2641744}
 % Comment it out when you first submit the paper for review.
 %\thispagestyle{empty}
 \begin{abstract}
-This demo presents how phone functionality can be offloaded from a smartphone over wireless link to a \emph{PhoneLet} by sharing one SIM card across multiple devices. This can lead to significant cost and network load reductions by reducing the number of simultaneously connected mobile clients. Furthermore, it can bring significant energy reductions for the mobile user when connected to a powered \emph{PhoneLet}. It absorbs the energy cost of inefficient mobile applications' communication patterns, instead providing connectivity for the user over a WiFi link.
+This demo presents how phone functionality can be offloaded from a smartphone over wireless link to a \emph{PhoneLet} by sharing one SIM card across multiple devices. This can lead to significant cost and network load reductions by decreasing the number of simultaneously connected mobile clients. Furthermore, it can save energy for the mobile user when connected to a powered \emph{PhoneLet} by offloading phone functionality. It absorbs the energy cost of online presence and inefficient mobile applications' communication patterns, instead providing connectivity for the user over a WiFi link.
 \end{abstract} 
 
 \category{C.2.3}{Computer-communication networks}{Network Operations}{Network Management}
@@ -173,20 +173,20 @@ Finally, energy consumption of always connected clients is high compared to shor
 
 \begin{figure}
 \centering
-\includegraphics[width=0.9\columnwidth]{figs/arch}
+\includegraphics[width=\columnwidth]{figs/arch}
 \caption{Architecture of PhoneLets and interaction with different types of servers}
 \label{fig:arch}
 \end{figure}
 
-The overall concept and system architecture is shown in Fig.~\ref{fig:arch}. There are three types of entities: 1) mobile server, a mobile device which can share its SIM with other clients, 2) SIM server which may host and provide more sets of credentials over local or wide-area networks and 3) a mobile client which can use either of the methods.
+Figure~\ref{fig:arch} shows the overall concept and system architecture. There are three types of entities: 1) mobile server, a mobile device which can share its SIM with other clients, 2) SIM server which may host and provide more sets of credentials over local or wide-area networks and 3) a mobile client which can use either of the methods.
 
-The SIM card is a special I/O device in a mobile platform: due to its security requirements it is not exposed to the platform's operating system. Instead, it is managed by the modem's firmware which routes all communication between the network and the subscriber module. Standard remote IO approaches are similar in their nature (\eg RIO~\cite{Sani:2014hs} enables transparently accessing I/O devices of a remote mobile system) but are not applicable in this setting.
+The SIM card is a special I/O device in a mobile platform: due to its security requirements it is not exposed to the platform's operating system. Instead, it is managed by the modem's firmware which routes all communication between the network and the subscriber module. Standard remote IO approaches are similar in their nature (\eg RIO~\cite{Sani:2014hs} enables transparently accessing I/O devices of a remote mobile system) but are not applicable in this setting as they require OS support.
 
-Interaction with the subscriber module requires lower level protocols understood by the modem firmware. Our design extends the standard RSAP (Remote SIM Access Protocol)~\cite{Anonymous:2008vz} by using a SIM server which is not capable of mobile connectivity itself and by using arbitrary communication links to access a remote SIM card (\emph{no SIM} in the mobile client). Our work for this demo focused primarily on the client and SIM server design, and we are using off-the-shelf hardware as the mobile server to demonstrate backwards-compatibility. 
+Interaction with the subscriber module requires lower level protocols understood by the modem firmware. Our design extends the standard RSAP (Remote SIM Access Protocol)~\cite{Anonymous:2008vz} by using a SIM server which is not capable of mobile connectivity itself and by using arbitrary communication links to access a remote SIM card (\emph{no SIM} in the mobile client). Our work for this demo focused primarily on the client and SIM server design. We use off-the-shelf hardware as the mobile server for backwards-compatibility. 
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.95\columnwidth]{figs/sequence}
+\includegraphics[width=\columnwidth]{figs/sequence}
 \caption{Communication sequence between client, server and remote SIM card}
 \label{fig:sequence}
 \end{figure}
@@ -199,7 +199,7 @@ Importantly, we do not clone the SIM card and by design the system disables conn
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.95\columnwidth]{figs/client}
+\includegraphics[width=\columnwidth]{figs/client}
 \caption{Client prototype}
 \label{fig:client}
 \end{figure}
@@ -233,15 +233,15 @@ Reduced mobile client energy consumption is an important motivation for \emph{Ph
 \label{tab:energy}
 \end{table}
 
-Energy consumption of a Samsung Galaxy S4 was measured\footnote{Using Monsoon Power Monitor \url{http://www.msoon.com/LabEquipment/PowerMonitor/}} in a number of scenarios. The different values are presented in Table.~\ref{tab:energy}\footnote{Current drain (mA) is chosen over power (mW) as power depends on voltage that decays with the battery discharge}. 
+We measured energy consumption of a Samsung Galaxy S4\footnote{Using Monsoon Power Monitor \url{http://www.msoon.com/LabEquipment/PowerMonitor/}} in a number of scenarios. Table.~\ref{tab:energy}\footnote{Current drain (mA) is chosen over power (mW) as power depends on voltage that decays with the battery discharge} presents energy consumption of the different device radios, depending on their use, ranging from an idle device with only a particular radio enabled, to different methods of sharing connectivity and simple application usage patterns.
 
 The absolute values will vary with different devices and network configuration or conditions and application use, but the overall results remain. In particular, energy consumption of the different idle radios is similar, but cellular networks are significantly less efficient for current applications' network usage patterns~\cite{Aucinas:2013uk}. Therefore, replacing the cellular link with a WiFi one to another, powered device can bring significant savings - 32.5\% in our example case.
 
-The default BT implementation of RSAP is not efficient enough - maintaining access alone consumes almost three times the amount of energy of an idle device connected to a 3G network. Instead, we have implemented SIM sharing over WiFi using our custom client and verified that the BT version is unnecessarily wasteful - once the PhoneLet has registered to the network, there is no communication with the SIM server for as long as the device is idle. For example, a phonecall is successfully received after 30 minutes of no activity. The current Android platform does not allow RSAP to run over WiFi, but based on our measurements we expect energy consumption of an optimized implementation to be very close to that of an idle WiFi channel - 3.5x less than BT.
+The default BT implementation of RSAP is not efficient enough - maintaining access alone consumes almost three times the amount of energy of an idle device connected to a 3G network. Instead, we have implemented SIM sharing over WiFi using our custom client and verified that the BT version is unnecessarily wasteful - once the PhoneLet has registered to the network, there is no communication with the SIM server for as long as the device is idle. For example, a phone call is successfully received after 30 minutes of no activity. The current Android platform does not allow RSAP to run over WiFi, but based on our measurements we expect energy consumption of an optimized implementation to be close to that of an idle WiFi channel - 3.5x less than BT.
 
-Finally, we measured energy consumption of WiFi tethering. With just one idle client it is almost 3x higher than the BT case. RSAP is effectively an alternative to WiFi tethering when the mobile client provides connectivity to other devices. So similarly to above, we expect energy consumption of an optimized WiFi mobile client to be close to 10x less than WiFi tethering.
+Finally, we measured energy consumption of WiFi tethering. With just one idle client it is almost 3x higher than the BT case. RSAP is effectively an alternative to WiFi tethering when the mobile client provides connectivity to other devices. Therefore we expect energy consumption of an optimized WiFi mobile client to be close to 10x less than WiFi tethering.
 
-These are early results, but they point to a potential use-case where a powered \emph{PhoneLet} is registered to the network on behalf of a WiFi-connected client at a considerable energy benefit. Outside the scope of this demo, the benefit would be further improved when network access is shared across multiple such devices and SIM access load is balanced across them as the savings for each individual device would add up.
+These are early results, but they point to a potential use-case where a powered \emph{PhoneLet} is registered to the network on behalf of a WiFi-connected client at a considerable energy benefit. The benefit would be further improved when network access is shared across multiple such devices and SIM access load is balanced across them as the savings for each individual device would add up. This use-case is outside the scope of the current demo.
 
 \section{Demo: wireless SIM sharing}
 
@@ -259,11 +259,11 @@ In the three steps we show our prototype's ability to offload phone functionalit
 
 In addition to connectivity, \emph{PhoneLets} offers management of an individual's ID - the phone number. There have been multiple offerings with such function: multiple SIM cards associated with a number or VoIP-based solutions (\eg Google Voice), however they do not solve the problem of an increasing number of cellular clients and billing depends on service provider.
 
-One cellular network in UK has offered a service to make phonecalls from tablets and laptops over WiFi to its users using a special app\footnote{O2 TU Go \url{http://www.o2.co.uk/apps/tu-go}} further blurring the line between mobile and the Internet. If WiFi Internet connectivity is available, the approach could help reduce energy consumption by disabling cellular radio.
+One cellular network in UK has offered a service to make phonecalls from tablets and laptops over WiFi to its users using a special application\footnote{O2 TU Go \url{http://www.o2.co.uk/apps/tu-go}}, blurring the line between mobile and the Internet. If WiFi Internet connectivity is available, the approach could help reduce energy consumption by disabling cellular radio.
 
 It is well known that WiFi tethering consumes a lot of energy. Cool-Tether~\cite{Sharma:2009fd} proposed to reverse the roles of a mobile gateway and client and turn the client into WiFi AP. Our proposal also reduces energy consumption of the mobile gateway by completely changing the roles of the entities. Instead, the client (\emph{PhoneLet}) uses the cellular network directly, avoiding additional wireless communication with the gateway.
 
-Reprogrammable SIM cards~\cite{OFcom:2012tx} such as embedded SIM~\cite{Association:2013ub} have been proposed for provisioning in M2M communication. They maintain a physical secure element to store credentials, but provide mechanisms to manage them over the air. The architecture, allows operators to retain full control over the credentials, including when new ones can be installed or old ones removed, with necessarily centralized management and reduced flexibility on the client side.
+Reprogrammable SIM cards~\cite{OFcom:2012tx} such as embedded SIM~\cite{Association:2013ub} have been proposed for provisioning in M2M communication. They maintain a physical secure element to store credentials, but provide mechanisms to manage them over the air. The architecture allows operators to retain full control over the credentials, including when new ones can be installed or old ones removed through centralized management and subsequently reduced flexibility on the client side.
 
 Finally, questions that remain to be answered in future work include not only optimizations of the management and control protocols, but also the development of usage policies in multi-user environments and guaranteed isolation properties as well as adaptation of energy-aware routing protocols for distributed nodes.
 
