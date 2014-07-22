@@ -367,6 +367,10 @@ static int telit_enable(struct ofono_modem *modem)
 	g_at_chat_send(data->chat, "ATE0 +CMEE=1", none_prefix,
 				NULL, NULL, NULL);
 
+	// Set GPIO7 pin as BUZZER OUTPUT
+	g_at_chat_send(data->chat, "AT#GPIO=7,0,2", none_prefix,
+				NULL, NULL, NULL);
+	
 	/*
 	 * Disable sim state notification so that we sure get a notification
 	 * when we enable it again later and don't have to query it.
