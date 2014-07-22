@@ -1052,7 +1052,7 @@ static DBusMessage *modem_set_property(DBusConnection *conn,
 					DBusMessage *msg, void *data)
 {
 	struct ofono_modem *modem = data;
-	DBusMessageIter iter, var;
+	DBusMessageIter iter, var, var2;
 	const char *name;
 
 	if (dbus_message_iter_init(msg, &iter) == FALSE)
@@ -1074,6 +1074,16 @@ static DBusMessage *modem_set_property(DBusConnection *conn,
 
 	if (g_str_equal(name, "Online"))
 		return set_property_online(modem, msg, &var);
+
+	// Default timeout
+	int timeout = 20;
+	if (dbus_message_iter_has_nex(&iter)) {
+		DBG("One more parameter");
+		dbus_message_iter_next(&iter);
+		if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_INT32)
+			return __ofono_error_invalid_args(msg);
+		dbus_message_iter_get_basic(&iter, &timeout);
+	}
 
 	if (g_str_equal(name, "Powered") == TRUE) {
 		ofono_bool_t powered;
@@ -1102,7 +1112,7 @@ static DBusMessage *modem_set_property(DBusConnection *conn,
 				return __ofono_error_failed(msg);
 
 			modem->pending = dbus_message_ref(msg);
-			modem->timeout = g_timeout_add_seconds(20,
+			modem->timeout = g_timeout_add_seconds(timeout,
 						set_powered_timeout, modem);
 			return NULL;
 		}
@@ -1139,7 +1149,7 @@ static const GDBusMethodTable modem_methods[] = {
 			NULL, GDBUS_ARGS({ "properties", "a{sv}" }),
 			modem_get_properties) },
 	{ GDBUS_ASYNC_METHOD("SetProperty",
-			GDBUS_ARGS({ "property", "s" }, { "value", "v" }),
+			GDBUS_ARGS({ "property", "s" }, { "value", "v" }, { "timeout", "i"}),
 			NULL, modem_set_property) },
 	{ }
 };
