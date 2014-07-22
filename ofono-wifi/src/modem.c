@@ -1077,7 +1077,7 @@ static DBusMessage *modem_set_property(DBusConnection *conn,
 
 	// Default timeout
 	int timeout = 20;
-	if (dbus_message_iter_has_nex(&iter)) {
+	if (dbus_message_iter_has_next(&iter)) {
 		DBG("One more parameter");
 		dbus_message_iter_next(&iter);
 		if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_INT32)
