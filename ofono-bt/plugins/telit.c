@@ -368,7 +368,9 @@ static int telit_enable(struct ofono_modem *modem)
 				NULL, NULL, NULL);
 
 	// Set GPIO7 pin as BUZZER OUTPUT
-	g_at_chat_send(data->chat, "AT#GPIO=7,0,2", none_prefix,
+	g_at_chat_send(data->chat, "AT#SRP=3", none_prefix,
+				NULL, NULL, NULL);
+	g_at_chat_send(data->chat, "AT#GPIO=7,1,2", none_prefix,
 				NULL, NULL, NULL);
 	
 	/*
