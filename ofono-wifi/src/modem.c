@@ -1094,6 +1094,15 @@ static DBusMessage *modem_set_property(DBusConnection *conn,
 
 		dbus_message_iter_get_basic(&var, &powered);
 
+		const char *type;
+		if (dbus_message_iter_has_next(&iter)) {
+			dbus_message_iter_next(&iter);
+			if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING)
+				return __ofono_error_invalid_args(msg);
+			dbus_message_iter_get_basic(&iter, &type);
+		}
+		ofono_modem_set_string(modem, "SAP_type", type);
+
 		if (modem->pending != NULL)
 			return __ofono_error_busy(msg);
 
@@ -1149,7 +1158,7 @@ static const GDBusMethodTable modem_methods[] = {
 			NULL, GDBUS_ARGS({ "properties", "a{sv}" }),
 			modem_get_properties) },
 	{ GDBUS_ASYNC_METHOD("SetProperty",
-			GDBUS_ARGS({ "property", "s" }, { "value", "v" }, { "timeout", "i"}),
+			GDBUS_ARGS({ "property", "s" }, { "value", "v" }, { "timeout", "i"}, { "type", "s"}),
 			NULL, modem_set_property) },
 	{ }
 };

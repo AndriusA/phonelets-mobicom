@@ -4,9 +4,14 @@ import dbus
 import sys
 
 bus = dbus.SystemBus()
+param = ""
 
 if len(sys.argv) == 2:
 	path = sys.argv[1]
+elif len(sys.argv) == 3:
+	#Extra parameter
+	path = sys.argv[1]
+	param = sys.argv[2]
 else:
 	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
 			'org.ofono.Manager')
@@ -17,4 +22,7 @@ print("Connecting modem %s..." % path)
 modem = dbus.Interface(bus.get_object('org.ofono', path),
 						'org.ofono.Modem')
 
-modem.SetProperty("Powered", dbus.Boolean(1), 120)
+if (param != ""):
+	modem.SetProperty("Powered", dbus.Boolean(1), 120, param)
+else:
+	modem.SetProperty("Powered", dbus.Boolean(1), 120)

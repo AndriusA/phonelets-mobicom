@@ -84,6 +84,7 @@ struct telit_data {
 	GIOChannel *hw_io;
 	guint bt_watch;
 	guint hw_watch;
+	ofono_bool_t bt_enabled;
 };
 
 static void telit_debug(const char *str, void *user_data)
@@ -498,18 +499,18 @@ static int telit_enable(struct ofono_modem *modem)
 	 * when we enable it again later and don't have to query it.
 	 */
 
-	DBG("#QSS: (%p)", data->chat);
-	g_at_chat_register(data->chat, "#QSS:", telit_qss_notify, FALSE, modem, NULL);
-	DBG("Registered");
+	//DBG("#QSS: (%p)", data->chat);
+	//g_at_chat_register(data->chat, "#QSS:", telit_qss_notify, FALSE, modem, NULL);
+	//DBG("Registered");
 
-	DBG("AT#QSS=2");
+	DBG("AT#QSS=0");
 	g_at_chat_send(data->chat, "AT#QSS=2", none_prefix, NULL, NULL, NULL);
 	DBG("Sent");
 
 	// sleep(10);
 	/* Set phone functionality */
-	DBG("AT+CFUN=4,0");
-	g_at_chat_send(data->chat, "AT+CFUN=4,0", none_prefix, cfun_enable_cb, modem, NULL);
+	DBG("AT+CFUN=4");
+	g_at_chat_send(data->chat, "AT+CFUN=4", none_prefix, cfun_enable_cb, modem, NULL);
 	DBG("Sent");
 	sleep(1);
 
@@ -630,17 +631,6 @@ static int telit_sap_open(void)
 	}
 
 	return fd;
-}
-
-static int telit_sap_enable(struct ofono_modem *modem,
-					struct ofono_modem *sap_modem,
-					int bt_fd)
-{
-	DBG("telit_sap_enable");
-	if (bt_fd == NULL)
-		return telit_sap_enable_wifi(*modem, *sap_modem);
-	else
-		return telit_sap_enable_bt(*modem, *sap_modem, bt_fd);
 }
 
 static int telit_sap_enable_wifi(struct ofono_modem *modem,
@@ -804,6 +794,17 @@ error:
 	return -EINVAL;
 }
 
+static int telit_sap_enable(struct ofono_modem *modem,
+					struct ofono_modem *sap_modem,
+					int bt_fd)
+{
+	DBG("telit_sap_enable");
+	if (bt_fd == NULL)
+		return telit_sap_enable_wifi(modem, sap_modem);
+	else
+		return telit_sap_enable_bt(modem, sap_modem, bt_fd);
+}
+
 static int telit_sap_disable(struct ofono_modem *modem)
 {
 	struct telit_data *data = ofono_modem_get_data(modem);
@@ -865,7 +866,7 @@ static void telit_set_online(struct ofono_modem *modem, ofono_bool_t online,
 {
 	struct telit_data *data = ofono_modem_get_data(modem);
 	struct cb_data *cbd = cb_data_new(cb, user_data);
-	char const *command = online ? "AT+CFUN=1,0" : "AT+CFUN=4,0";
+	char const *command = online ? "AT+CFUN=1" : "AT+CFUN=4";
 
 	DBG("modem %p %s", modem, online ? "online" : "offline");
 
