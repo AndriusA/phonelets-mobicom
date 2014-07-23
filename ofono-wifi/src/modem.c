@@ -1052,7 +1052,7 @@ static DBusMessage *modem_set_property(DBusConnection *conn,
 					DBusMessage *msg, void *data)
 {
 	struct ofono_modem *modem = data;
-	DBusMessageIter iter, var, var2;
+	DBusMessageIter iter, var;
 	const char *name;
 
 	if (dbus_message_iter_init(msg, &iter) == FALSE)

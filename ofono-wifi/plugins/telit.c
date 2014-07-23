@@ -125,14 +125,53 @@ static void sap_close_io(struct ofono_modem *modem)
 		g_source_remove(data->hw_watch);
 }
 
-static void hw_watch_remove(gpointer userdata)
+static void bt_watch_remove(gpointer userdata)
 {
 	struct ofono_modem *modem = userdata;
 	struct telit_data *data = ofono_modem_get_data(modem);
 
 	ofono_modem_set_powered(modem, FALSE);
 
-	data->hw_watch = 0;
+	data->bt_watch = 0;
+}
+
+static gboolean bt_event_cb(GIOChannel *bt_io, GIOCondition condition,
+							gpointer userdata)
+{
+	struct ofono_modem *modem = userdata;
+	struct telit_data *data = ofono_modem_get_data(modem);
+
+	if (condition & G_IO_IN) {
+		GIOStatus status;
+		gsize bytes_read, bytes_written;
+		gchar buf[300];
+
+		status = g_io_channel_read_chars(bt_io, buf, 300,
+							&bytes_read, NULL);
+
+		if (bytes_read > 0) {
+			GIOStatus st;
+			if (bytes_read >= 3 && buf[0] == 0x01 && buf[1] == 0x01 && buf[2] == 0x00) {
+				DBG("do not write CONNECT_RESP");
+				return TRUE;	
+			}
+			st = g_io_channel_write_chars(data->hw_io, buf,
+					bytes_read, &bytes_written, NULL);
+			DBG("BT event <--- (read %d, wrote %d bytes to hw_io)", (int)bytes_read, (int)bytes_written);
+       		hex_print(buf, bytes_read);
+       		if (st != G_IO_STATUS_NORMAL && st != G_IO_STATUS_AGAIN) {
+       			DBG("Bad status");
+				return FALSE;
+       		}
+		}
+
+		if (status != G_IO_STATUS_NORMAL && status != G_IO_STATUS_AGAIN)
+			return FALSE;
+
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 // Callback function meant to replace bt_event_cb
@@ -189,7 +228,17 @@ static gboolean smartcard_cb (DBusPendingCall *call, gpointer userdata)
 	return TRUE;
 }
 
-static gboolean hw_event_cb(GIOChannel *hw_io, GIOCondition condition,
+static void hw_watch_remove(gpointer userdata)
+{
+	struct ofono_modem *modem = userdata;
+	struct telit_data *data = ofono_modem_get_data(modem);
+
+	ofono_modem_set_powered(modem, FALSE);
+
+	data->hw_watch = 0;
+}
+
+static gboolean hw_event_cb_smart(GIOChannel *hw_io, GIOCondition condition,
 							gpointer userdata)
 {
 	//struct ofono_modem *modem = userdata;
@@ -228,6 +277,36 @@ static gboolean hw_event_cb(GIOChannel *hw_io, GIOCondition condition,
 			// dbus_connection_flush(connection);
 			// dbus_pending_call_unref(call);
 			// dbus_message_unref(processAPDUCall);
+		}
+
+		if (status != G_IO_STATUS_NORMAL && status != G_IO_STATUS_AGAIN)
+			return FALSE;
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+static gboolean hw_event_cb(GIOChannel *hw_io, GIOCondition condition,
+							gpointer userdata)
+{
+	struct ofono_modem *modem = userdata;
+	struct telit_data *data = ofono_modem_get_data(modem);
+
+	if (condition & G_IO_IN) {
+		GIOStatus status;
+		gsize bytes_read, bytes_written;
+		gchar buf[300];
+
+		status = g_io_channel_read_chars(hw_io, buf, 300,
+							&bytes_read, NULL);
+
+		if (bytes_read > 0) {
+			g_io_channel_write_chars(data->bt_io, buf,
+					bytes_read, &bytes_written, NULL);
+			DBG("HW event --->");
+			hex_print(buf, bytes_read);
 		}
 
 		if (status != G_IO_STATUS_NORMAL && status != G_IO_STATUS_AGAIN)
@@ -557,6 +636,17 @@ static int telit_sap_enable(struct ofono_modem *modem,
 					struct ofono_modem *sap_modem,
 					int bt_fd)
 {
+	DBG("telit_sap_enable");
+	if (bt_fd == NULL)
+		return telit_sap_enable_wifi(*modem, *sap_modem);
+	else
+		return telit_sap_enable_bt(*modem, *sap_modem, bt_fd);
+}
+
+static int telit_sap_enable_wifi(struct ofono_modem *modem,
+					struct ofono_modem *sap_modem)
+{
+	DBG("telit_sap_enable_wifi");
 	struct telit_data *data = ofono_modem_get_data(modem);
 	data->modem = open_device(modem, "Modem", "Modem: ");
 	if (data->modem == NULL)
@@ -612,7 +702,7 @@ static int telit_sap_enable(struct ofono_modem *modem,
 
 	data->hw_watch = g_io_add_watch_full(data->hw_io, G_PRIORITY_HIGH,
 				G_IO_HUP | G_IO_ERR | G_IO_NVAL | G_IO_IN,
-				hw_event_cb, modem, hw_watch_remove);
+				hw_event_cb_smart, modem, hw_watch_remove);
 
 	// No bt_watch either
 	// data->bt_watch = g_io_add_watch_full(data->bt_io, G_PRIORITY_DEFAULT,
@@ -635,8 +725,80 @@ static int telit_sap_enable(struct ofono_modem *modem,
 	return -EINPROGRESS;
 
 error:
-	// shutdown(bt_fd, SHUT_RDWR);
-	// close(bt_fd);
+	sap_close_io(modem);
+	return -EINVAL;
+}
+
+static int telit_sap_enable_bt(struct ofono_modem *modem,
+					struct ofono_modem *sap_modem,
+					int bt_fd)
+{
+	DBG("telit_sap_enable_wifi");
+	struct telit_data *data = ofono_modem_get_data(modem);
+
+	data->modem = open_device(modem, "Modem", "Modem: ");
+    if (data->modem == NULL)
+        return -EINVAL;
+
+    data->chat = open_device(modem, "Aux", "Aux: ");
+    if (data->chat == NULL) {
+        g_at_chat_unref(data->modem);
+        data->modem = NULL;
+        return -EIO;
+    }
+
+    g_at_chat_set_slave(data->modem, data->chat);   
+
+	int fd;
+
+	DBG("%p", modem);
+
+	fd = telit_sap_open();
+	if (fd < 0)
+		goto error;
+
+	data->hw_io = g_io_channel_unix_new(fd);
+	if (data->hw_io == NULL) {
+		close(fd);
+		goto error;
+	}
+
+	g_io_channel_set_encoding(data->hw_io, NULL, NULL);
+	g_io_channel_set_buffered(data->hw_io, FALSE);
+	g_io_channel_set_close_on_unref(data->hw_io, TRUE);
+
+	data->bt_io = g_io_channel_unix_new(bt_fd);
+	if (data->bt_io == NULL)
+		goto error;
+
+	g_io_channel_set_encoding(data->bt_io, NULL, NULL);
+	g_io_channel_set_buffered(data->bt_io, FALSE);
+	g_io_channel_set_close_on_unref(data->bt_io, TRUE);
+
+	data->hw_watch = g_io_add_watch_full(data->hw_io, G_PRIORITY_DEFAULT,
+				G_IO_HUP | G_IO_ERR | G_IO_NVAL | G_IO_IN,
+				hw_event_cb, modem, hw_watch_remove);
+
+	data->bt_watch = g_io_add_watch_full(data->bt_io, G_PRIORITY_DEFAULT,
+				G_IO_HUP | G_IO_ERR | G_IO_NVAL | G_IO_IN,
+				bt_event_cb, modem, bt_watch_remove);
+
+	data->sap_modem = sap_modem;
+
+	g_at_chat_register(data->chat, "#RSEN:", telit_rsen_notify,
+				FALSE, modem, NULL);
+
+	g_at_chat_send(data->chat, "AT#NOPT=0", NULL, NULL, NULL, NULL);
+
+	/* Set SAP functionality */
+	g_at_chat_send(data->chat, "AT#RSEN=1,1,0,2,0", rsen_prefix,
+				rsen_enable_cb, modem, NULL);
+
+	return -EINPROGRESS;
+
+error:
+	shutdown(bt_fd, SHUT_RDWR);
+	close(bt_fd);
 
 	sap_close_io(modem);
 	return -EINVAL;
@@ -734,15 +896,13 @@ static void telit_post_online(struct ofono_modem *modem)
 }
 
 static struct bluetooth_sap_driver sap_driver = {
-	.name 		= "telit",
-	//.probe 	- defined elsewhere
-	//.remove 	- defined elsewhere
-	.enable 	= telit_sap_enable,		// different
-	.disable 	= telit_sap_disable,	// different
+	.name = "telit",
+	.enable = telit_sap_enable,
+	.pre_sim = telit_pre_sim,
+	.post_sim = telit_post_sim,
 	.set_online = telit_set_online,
-	.pre_sim 	= telit_pre_sim,
-	.post_sim 	= telit_post_sim,
-	.post_online 	= telit_post_online,
+	.post_online = telit_post_online,
+	.disable = telit_sap_disable,
 };
 
 static int telit_probe(struct ofono_modem *modem)
